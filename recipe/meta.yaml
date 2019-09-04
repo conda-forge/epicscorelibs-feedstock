@@ -8,9 +8,11 @@ package:
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: dfeeba6abf64521057242597137c33ecf12c450c7c3d132750cf22dade5a6d22
+  patches:
+    - libcxx.diff
 
 build:
-  number: 0
+  number: 1
   script: "{{ PYTHON }} -m pip install . --no-binary :all: -vv"
 
 requirements:
