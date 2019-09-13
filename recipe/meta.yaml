@@ -1,5 +1,5 @@
 {% set name = "epicscorelibs" %}
-{% set version = "7.0.3.99.0.0" %}
+{% set version = "7.0.3.99.1.0" %}
 
 package:
   name: {{ name|lower }}
@@ -7,12 +7,12 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: dfeeba6abf64521057242597137c33ecf12c450c7c3d132750cf22dade5a6d22
+  sha256: 0b8de96fb68dbebe9d2f1c411754011c11a95c311dec863dbc27f9cbe31f48dc
   patches:
     - libcxx.diff
 
 build:
-  number: 1
+  number: 0
   script: "{{ PYTHON }} -m pip install . --no-binary :all: -vv"
 
 requirements:
