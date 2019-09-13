@@ -8,8 +8,6 @@ package:
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: 0b8de96fb68dbebe9d2f1c411754011c11a95c311dec863dbc27f9cbe31f48dc
-  patches:
-    - libcxx.diff
 
 build:
   number: 0
