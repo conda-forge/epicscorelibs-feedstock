@@ -35,7 +35,7 @@ test:
 
 about:
   home: https://github.com/mdavidsaver/epicscorelibs
-  license: EPICS Open
+  license: EPICS
   license_file: LICENSE
   summary: EPICS core libraries packaged as a "python" module
   description: |
