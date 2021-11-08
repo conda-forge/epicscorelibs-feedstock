@@ -10,7 +10,7 @@ source:
   sha256: e45621fd3c9bc46e820835594213313e71f636966c3f2832f031ca7d5466c681
 
 build:
-  number: 1
+  number: 2 
   script: '{{ PYTHON }} -m pip install . --no-binary :all: -vv'
 
 requirements:
@@ -25,6 +25,7 @@ requirements:
     - readline  # [not win]
   run:
     - python
+    - setuptools_dso
     - readline  # [not win]
 
 test:
@@ -34,7 +35,7 @@ test:
 
 about:
   home: https://github.com/mdavidsaver/epicscorelibs
-  license: EPICS Open
+  license: EPICS
   license_file: LICENSE
   summary: EPICS core libraries packaged as a "python" module
   description: |

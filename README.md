@@ -3,7 +3,7 @@ About epicscorelibs
 
 Home: https://github.com/mdavidsaver/epicscorelibs
 
-Package license: EPICS Open
+Package license: EPICS
 
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/epicscorelibs-feedstock/blob/master/LICENSE.txt)
 
