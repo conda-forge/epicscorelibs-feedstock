@@ -21,11 +21,11 @@ requirements:
     - python
     - pip
     - setuptools
-    - setuptools_dso
+    - setuptools_dso >=2.9a1
     - readline  # [not win]
   run:
     - python
-    - setuptools_dso
+    - setuptools_dso >=2.9a1
     - readline  # [not win]
     - numpy
 
