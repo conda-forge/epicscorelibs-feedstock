@@ -27,6 +27,7 @@ requirements:
     - python
     - setuptools_dso
     - readline  # [not win]
+    - numpy
 
 test:
   imports:
