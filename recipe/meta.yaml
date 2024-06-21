@@ -10,7 +10,7 @@ source:
   sha256: 283735c6100c3c24ab9a535719b14e48b033b1cc7bb7a9d744c9e847667c8c96
 
 build:
-  number: 1
+  number: 2
   script: '{{ PYTHON }} -m pip install . --no-binary :all: -vv'
 
 requirements:
@@ -50,3 +50,4 @@ extra:
   recipe-maintainers:
     - hhslepicka
     - klauer
+    - mrakitin
