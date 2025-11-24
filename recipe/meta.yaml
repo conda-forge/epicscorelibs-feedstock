@@ -38,7 +38,7 @@ test:
     - epicscorelibs.config
 
 about:
-  home: https://github.com/mdavidsaver/epicscorelibs
+  home: https://github.com/epics-base/epicscorelibs
   license: EPICS
   license_file: LICENSE
   summary: EPICS core libraries packaged as a "python" module
