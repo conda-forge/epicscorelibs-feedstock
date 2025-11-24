@@ -66,7 +66,7 @@ test:
     - python -c "import os, epicscorelibs; d = os.path.join(os.path.dirname(epicscorelibs.__file__), 'lib'); assert not any(f.endswith(('.so', '.dylib', '.dll')) for f in os.listdir(d))"
 
 about:
-  home: https://github.com/mdavidsaver/epicscorelibs
+  home: https://github.com/epics-base/epicscorelibs
   license: EPICS
   license_file: LICENSE
   summary: EPICS core libraries packaged as a "python" module
