@@ -11,8 +11,24 @@ source:
   patches:
     # Use the shared libraries from the epics-base package instead of building
     # and bundling a private copy, so both can coexist in one process.
-    - patch/use_system_epics_base.patch
     - patch/path_use_epics_base.patch
+    # setup.py normally builds and bundles a private copy of the EPICS Base
+    # DSOs/headers/dbd files (unused here, see path_use_epics_base.patch
+    # above) using the setuptools_dso build framework, which also probes
+    # the compiler toolchain (gcc/clang/msvc, and C++ ABI macros) to
+    # generate epicscorelibs._config. Replace all of this: this package
+    # builds no native code at all in this recipe, and conda-forge's
+    # per-platform compiler family and C++ ABI are already fixed and
+    # coherent ecosystem-wide, so epicscorelibs._config can be generated
+    # directly instead of by invoking a compiler. This removes the need
+    # for setuptools_dso entirely, at both build time and run time.
+    - patch/setup_no_setuptools_dso.patch
+    # epicscorelibs.config re-probes the compiler ID (gcc/clang/msvc) with
+    # setuptools_dso every time it is imported, even though the same
+    # information is already baked into the generated epicscorelibs._config
+    # module at build time (alongside the cxxdefs ABI macros, see
+    # setup_no_setuptools_dso.patch above). Reuse that instead.
+    - patch/config_no_runtime_probe.patch
 
 build:
   number: 0
@@ -29,18 +45,13 @@ requirements:
     - python
     - pip
     - setuptools
-    - setuptools_dso >=2.11a2
     - epics-base
   run:
     - python
-    - setuptools_dso >=2.11a2
     - numpy
     - epics-base
 
 test:
-  requires:
-    # epicscorelibs.config probes the C compiler at import
-    - {{ compiler('c') }}
   imports:
     - epicscorelibs
     - epicscorelibs.ca.cadef  # loads libca from epics-base at import
