@@ -38,6 +38,9 @@ requirements:
     - epics-base
 
 test:
+  requires:
+    # epicscorelibs.config probes the C compiler at import
+    - {{ compiler('c') }}
   imports:
     - epicscorelibs
     - epicscorelibs.ca.cadef  # loads libca from epics-base at import
