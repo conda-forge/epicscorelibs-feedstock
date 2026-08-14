@@ -1,0 +1,74 @@
+diff --git a/src/python/epicscorelibs/config.py b/src/python/epicscorelibs/config.py
+index b9b0b94..0bc53ac 100644
+--- a/src/python/epicscorelibs/config.py
++++ b/src/python/epicscorelibs/config.py
+@@ -7,7 +7,23 @@ from copy import deepcopy
+ import platform
+ import sysconfig
+ 
+-from setuptools_dso.probe import ProbeToolchain
++# conda-forge note: upstream determines 'CMPLR_CLASS' (and the ABI-related
++# 'cxxdefs' in _makebuild(), below) by actually invoking a C/C++ compiler's
++# preprocessor at both build time and import time (via
++# setuptools_dso.probe.ProbeToolchain). This package is patched to build no
++# native code at all (it is a noarch: python package: the epics-base
++# conda package provides the actual compiled EPICS libraries), so there is
++# no compiler to probe, and no need for setuptools_dso.
++#
++# Instead, CMPLR_CLASS is derived directly from OS_CLASS: conda-forge's
++# compiler family per-platform is fixed and coherent ecosystem-wide (set by
++# conda-forge's global pinning, not by whatever compiler happens to be on
++# PATH) - gcc on Linux, clang on macOS, MSVC on Windows.
++_CMPLR_CLASS_BY_OS = {
++    'Linux': 'gcc',
++    'Darwin': 'clang',
++    'WIN32': 'msvc',
++}
+ 
+ 
+ __all__ = (
+@@ -28,15 +44,7 @@ def _makeconf():
+     }[platform.system()]
+ 
+     # select epics CMPLR_CLASS
+-    ID = ProbeToolchain().eval_macros(('__GNUC__', '__clang__', '_MSC_VER'))
+-    if ID['__clang__']:
+-        cmplrname = conf['CMPLR_CLASS'] = 'clang'
+-    elif ID['__GNUC__']:
+-        cmplrname = conf['CMPLR_CLASS'] = 'gcc'
+-    elif ID['_MSC_VER']:
+-        cmplrname = conf['CMPLR_CLASS'] = 'msvc'
+-    else:
+-        raise RuntimeError('Unable to identify compiler %s' % ID)
++    cmplrname = conf['CMPLR_CLASS'] = _CMPLR_CLASS_BY_OS[osname]
+ 
+     machine = platform.machine().lower() # host CPU, may not reflect target bit width on windows
+     bits = {
+@@ -63,6 +71,8 @@ def _makeconf():
+     elif osname=='Darwin':
+         if machine=='ppc':
+             HA = 'darwin-ppc'
++        elif machine=='arm64':
++            HA = 'darwin-aarch64'
+         else:
+             HA = 'darwin-x86'
+ 
+@@ -121,12 +131,12 @@ def _makebuild():
+         build['CXXFLAGS'] += ['-EHsc']
+         build['LDADD'] += ['netapi32', 'ws2_32', 'advapi32', 'user32']
+ 
+-    try:
+-        from ._config import cxxdefs
+-    except ImportError:
+-        pass # assume this is the epicscorelibs build
+-    else:
+-        build['CPPFLAGS'] += cxxdefs
++    if _config['CMPLR_CLASS']=='gcc':
++        # Only GCC's libstdc++ has the dual-ABI problem that
++        # '_GLIBCXX_USE_CXX11_ABI' addresses (not applicable to
++        # clang/libc++ on macOS, or MSVC on Windows). conda-forge has built
++        # with the new ('=1') ABI ecosystem-wide since 2019.
++        build['CPPFLAGS'] += [('_GLIBCXX_USE_CXX11_ABI', '1')]
+ 
+     return build
+ 

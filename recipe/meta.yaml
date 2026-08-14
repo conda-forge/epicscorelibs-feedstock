@@ -15,32 +15,29 @@ source:
     # setup.py normally builds and bundles a private copy of the EPICS Base
     # DSOs/headers/dbd files (unused here, see path_use_epics_base.patch
     # above) using the setuptools_dso build framework, which also probes
-    # the compiler toolchain (gcc/clang/msvc, and C++ ABI macros) to
-    # generate epicscorelibs._config. Replace all of this: this package
-    # builds no native code at all in this recipe, and conda-forge's
-    # per-platform compiler family and C++ ABI are already fixed and
-    # coherent ecosystem-wide, so epicscorelibs._config can be generated
-    # directly instead of by invoking a compiler. This removes the need
-    # for setuptools_dso entirely, at both build time and run time.
+    # the compiler toolchain (gcc/clang/msvc, and C++ ABI macros). Replace
+    # all of this: this package builds no native code at all, so it no
+    # longer needs setuptools_dso, or a compiler, at all.
     - patch/setup_no_setuptools_dso.patch
-    # epicscorelibs.config re-probes the compiler ID (gcc/clang/msvc) with
-    # setuptools_dso every time it is imported, even though the same
-    # information is already baked into the generated epicscorelibs._config
-    # module at build time (alongside the cxxdefs ABI macros, see
-    # setup_no_setuptools_dso.patch above). Reuse that instead.
-    - patch/config_no_runtime_probe.patch
+    # epicscorelibs.config exposes a small amount of toolchain information
+    # (OS_CLASS, CMPLR_CLASS, CPPFLAGS, ...) as public API, determined
+    # upstream by invoking a compiler's preprocessor (via setuptools_dso)
+    # at import time. Since this is a noarch: python package installed
+    # as-is on every platform, nothing can be baked in at build time
+    # (unlike setup_no_setuptools_dso.patch, above, for the same reason).
+    # Instead derive it from platform.system() at import time: a given
+    # platform's compiler family and C++ ABI are fixed and coherent across
+    # the whole conda-forge ecosystem, so this is equivalent to actually
+    # probing a compiler, without requiring setuptools_dso or a compiler
+    # to be present at all.
+    - patch/config_noarch_no_probe.patch
 
 build:
-  number: 0
+  number: 1
+  noarch: python
   script: '{{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv'
 
 requirements:
-  build:
-    - {{ compiler('c') }}
-    - {{ stdlib("c") }}
-    - {{ compiler('cxx') }}
-    - python                                 # [build_platform != target_platform]
-    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
   host:
     - python
     - pip
