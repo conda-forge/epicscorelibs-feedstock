@@ -6,7 +6,7 @@ package:
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: e8c8d9730faef7df55f4d329c359a0e4c044f03a524dd2e4587e90132873edfd
   patches:
     # Use the shared libraries from the epics-base package instead of building
