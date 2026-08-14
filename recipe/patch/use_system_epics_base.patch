@@ -1,0 +1,13 @@
+diff --git a/setup.py b/setup.py
+index 74840be..3673add 100755
+--- a/setup.py
++++ b/setup.py
+@@ -598,7 +598,7 @@ for use by python modules.  Either dynamically with ctypes or statically by comp
+         ],
+     },
+     ext_modules = [ext],
+-    x_dsos = modules,
++    x_dsos = [],  # link against the shared libraries from the epics-base package
+     x_headers = headers,
+     x_api_h = [
+         ('libCom', 'modules/libcom/src/libComAPI.h'),

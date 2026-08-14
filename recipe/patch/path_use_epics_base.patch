@@ -1,0 +1,91 @@
+diff --git a/src/python/epicscorelibs/ioc.py b/src/python/epicscorelibs/ioc.py
+index 7c225d2..0c907db 100644
+--- a/src/python/epicscorelibs/ioc.py
++++ b/src/python/epicscorelibs/ioc.py
+@@ -10,8 +10,6 @@ import sys
+ import os
+ import atexit
+ 
+-from setuptools_dso import find_dso
+-
+ from . import path
+ 
+ 
+@@ -76,7 +74,7 @@ def start_ioc(database=None, macros='', dbs=None, extra_dbd_load=(), extra_dso_l
+         sys.stderr.flush()
+ 
+     for dso in extra_dso_load:
+-        ctypes.CDLL(find_dso(dso), ctypes.RTLD_GLOBAL) 
++        ctypes.CDLL(path.get_lib(dso), ctypes.RTLD_GLOBAL)
+ 
+     iocshRegisterCommon()
+ 
+@@ -101,7 +99,7 @@ def start_ioc(database=None, macros='', dbs=None, extra_dbd_load=(), extra_dso_l
+     out('IOC Running\n')
+ 
+ pva_dbd_load = (("PVAServerRegister.dbd", DEFAULT_DBD_PATH), ("qsrv.dbd", DEFAULT_DBD_PATH))
+-pva_dso_load = ("epicscorelibs.lib.pvAccessIOC", "epicscorelibs.lib.qsrv",)
++pva_dso_load = ("pvAccessIOC", "qsrv",)
+ def main(extra_dbd_load=pva_dbd_load, extra_dso_load=pva_dso_load):
+     class DbAction(argparse.Action):
+         def __call__(self, parser, ns, values, opt):
+diff --git a/src/python/epicscorelibs/path/__init__.py b/src/python/epicscorelibs/path/__init__.py
+index 86200ac..9dcb49a 100644
+--- a/src/python/epicscorelibs/path/__init__.py
++++ b/src/python/epicscorelibs/path/__init__.py
+@@ -1,7 +1,6 @@
+ 
+ import os
+-
+-from setuptools_dso.runtime import dylink_prepare_dso, find_dso
++import sys
+ 
+ __all__ = (
+     'include_path',
+@@ -9,11 +8,30 @@ __all__ = (
+     'get_lib',
+ )
+ 
+-base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
++# EPICS Base is provided by the epics-base conda package, installed under $PREFIX/epics.
++base_path = os.environ.get('EPICS_BASE') or os.path.join(sys.prefix, 'epics')
++
++
++def _host_arch():
++    arch = os.environ.get('EPICS_HOST_ARCH')
++    if arch:
++        return arch
++    # The single arch sub-directory of the epics-base install is authoritative.
++    for sub in ('lib', 'bin'):
++        root = os.path.join(base_path, sub)
++        if os.path.isdir(root):
++            entries = [e for e in os.listdir(root)
++                       if os.path.isdir(os.path.join(root, e))]
++            if entries:
++                return entries[0]
++    return ''
++
++
++_host_arch = _host_arch()
++
+ include_path = os.path.join(base_path, 'include')
+-lib_path = os.path.join(base_path, 'lib')
++lib_path = os.path.join(base_path, 'lib', _host_arch)
+ 
+-dylink_prepare_dso('..lib.ca')
+ 
+ def get_lib(name):
+     """Fetch library path by name.
+@@ -21,6 +39,11 @@ def get_lib(name):
+     :param str name: A library name.  eg. 'Com' or 'ca'.
+     :returns: The full absolute path to this library.
+     """
+-    return find_dso('..lib.'+name)
++    if sys.platform == 'win32':
++        return os.path.join(base_path, 'bin', _host_arch, name + '.dll')
++    elif sys.platform == 'darwin':
++        return os.path.join(lib_path, 'lib' + name + '.dylib')
++    else:
++        return os.path.join(lib_path, 'lib' + name + '.so')
+ 
+ libraries = ('Com', 'ca', 'pvData', 'pvAccess', 'pvAccessCA', 'dbCore', 'dbRecStd', 'pvAccessIOC', 'qsrv')

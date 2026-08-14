@@ -1,5 +1,5 @@
 {% set name = "epicscorelibs" %}
-{% set version = "7.0.7.99.1.1" %}
+{% set version = "7.0.10.99.0.1" %}
 
 package:
   name: {{ name|lower }}
@@ -7,35 +7,45 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: f9dd2c01913cf13959e882c7c2afccd5d55cd5084bd4597201ea119f65752231
+  sha256: e8c8d9730faef7df55f4d329c359a0e4c044f03a524dd2e4587e90132873edfd
+  patches:
+    # Use the shared libraries from the epics-base package instead of building
+    # and bundling a private copy, so both can coexist in one process.
+    - patch/use_system_epics_base.patch
+    - patch/path_use_epics_base.patch
 
 build:
-  number: 1
-  script: '{{ PYTHON }} -m pip install . --no-binary :all: -vv'
+  number: 0
+  script: '{{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv'
 
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
   host:
     - python
     - pip
     - setuptools
-    - setuptools_dso >=2.9a1
-    - readline  # [not win]
+    - setuptools_dso >=2.11a2
+    - epics-base
   run:
     - python
-    - setuptools_dso >=2.9a1
-    - readline  # [not win]
+    - setuptools_dso >=2.11a2
     - numpy
+    - epics-base
 
 test:
   imports:
     - epicscorelibs
-    - epicscorelibs.ca
+    - epicscorelibs.ca.cadef  # loads libca from epics-base at import
     - epicscorelibs.ca.dbr
     - epicscorelibs.config
+  commands:
+    # EPICS libraries come from epics-base; none are bundled here
+    - python -c "import os, epicscorelibs; d = os.path.join(os.path.dirname(epicscorelibs.__file__), 'lib'); assert not any(f.endswith(('.so', '.dylib', '.dll')) for f in os.listdir(d))"
 
 about:
   home: https://github.com/mdavidsaver/epicscorelibs
