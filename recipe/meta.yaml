@@ -40,7 +40,7 @@ source:
     - patch/config_no_compiler_probe.patch
 
 build:
-  number: 1
+  number: 0
   noarch: python
   script: '{{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv'
 
