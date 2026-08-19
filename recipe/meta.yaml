@@ -46,12 +46,12 @@ build:
 
 requirements:
   host:
-    - python
+    - python {{ python_min }}
     - pip
     - setuptools
     - epics-base
   run:
-    - python
+    - python >={{ python_min }}
     - numpy
     - epics-base
 
