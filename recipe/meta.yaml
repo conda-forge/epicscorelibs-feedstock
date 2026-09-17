@@ -1,44 +1,72 @@
 {% set name = "epicscorelibs" %}
-{% set version = "7.0.7.99.1.1" %}
+{% set version = "7.0.10.99.0.1" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: f9dd2c01913cf13959e882c7c2afccd5d55cd5084bd4597201ea119f65752231
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: e8c8d9730faef7df55f4d329c359a0e4c044f03a524dd2e4587e90132873edfd
+  patches:
+    # These three patches together adapt epicscorelibs to use the
+    # epics-base conda package's shared libraries, headers, and DBD files
+    # instead of building and bundling a private copy (so both can
+    # coexist in one process). They are independent and do NOT stack: each
+    # touches a disjoint set of files (named after those files below), is
+    # generated directly against the pristine source tarball above, and
+    # does not depend on the others having been applied first. Their
+    # relative order in this list is arbitrary.
+    #
+    # Repoints epicscorelibs/{ioc,path/__init__}.py at epics-base's install
+    # location instead of a private copy built by this package.
+    - patch/ioc_and_path_use_epics_base.patch
+    # setup.py/pyproject.toml: no longer build or install any of that
+    # private copy (DSOs/headers/dbd files), nor the setuptools_dso build
+    # framework used to do so - meaning this package builds no native code
+    # at all, and needs neither setuptools_dso nor a compiler to build.
+    - patch/setup_and_pyproject_no_setuptools_dso.patch
+    # epicscorelibs/config.py still exposes a small amount of toolchain
+    # information (OS_CLASS, CMPLR_CLASS, CPPFLAGS, ...) as public API,
+    # upstream determined by invoking a compiler's preprocessor (via
+    # setuptools_dso) at import time. Since this is a noarch: python
+    # package installed as-is on every platform, nothing can be baked in
+    # at build time either (unlike the setup.py patch, above, for the
+    # same reason). Instead this is derived from platform.system() at
+    # import time: a given platform's compiler family and C++ ABI are
+    # fixed and coherent across the whole conda-forge ecosystem, so this
+    # is equivalent to actually probing a compiler, without requiring
+    # setuptools_dso or a compiler to be present at all.
+    - patch/config_no_compiler_probe.patch
 
 build:
-  number: 1
-  script: '{{ PYTHON }} -m pip install . --no-binary :all: -vv'
+  number: 0
+  noarch: python
+  script: '{{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv'
 
 requirements:
-  build:
-    - {{ compiler('c') }}
-    - {{ stdlib("c") }}
-    - {{ compiler('cxx') }}
   host:
-    - python
+    - python {{ python_min }}
     - pip
     - setuptools
-    - setuptools_dso >=2.9a1
-    - readline  # [not win]
+    - epics-base
   run:
-    - python
-    - setuptools_dso >=2.9a1
-    - readline  # [not win]
+    - python >={{ python_min }}
     - numpy
+    - epics-base
 
 test:
   imports:
     - epicscorelibs
-    - epicscorelibs.ca
+    - epicscorelibs.ca.cadef  # loads libca from epics-base at import
     - epicscorelibs.ca.dbr
     - epicscorelibs.config
+  commands:
+    # EPICS libraries come from epics-base; none are bundled here
+    - python -c "import os, epicscorelibs; d = os.path.join(os.path.dirname(epicscorelibs.__file__), 'lib'); assert not any(f.endswith(('.so', '.dylib', '.dll')) for f in os.listdir(d))"
 
 about:
-  home: https://github.com/mdavidsaver/epicscorelibs
+  home: https://github.com/epics-base/epicscorelibs
   license: EPICS
   license_file: LICENSE
   summary: EPICS core libraries packaged as a "python" module
