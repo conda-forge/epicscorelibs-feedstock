@@ -1,3 +1,5 @@
+bot:
+  inspection: update-grayskull
 provider:
   win: azure
   linux_aarch64: default
@@ -9,3 +11,5 @@ github:
   tooling_branch_name: main
 conda_build:
   pkg_format: '2'
+conda_build_tool: rattler-build
+conda_install_tool: pixi

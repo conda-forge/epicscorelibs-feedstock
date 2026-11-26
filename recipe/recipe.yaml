@@ -1,12 +1,14 @@
-{% set name = "epicscorelibs" %}
-{% set version = "7.0.10.99.0.2" %}
+schema_version: 1
+
+context:
+  version: "7.0.10.99.0.2"
 
 package:
-  name: {{ name|lower }}
-  version: {{ version }}
+  name: epicscorelibs
+  version: ${{ version }}
 
 source:
-  url: https://files.pythonhosted.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  url: https://files.pythonhosted.org/packages/source/e/epicscorelibs/epicscorelibs-${{ version }}.tar.gz
   sha256: a5de1b5144fe3e64593f396f94c5b4389338118963d29d50349d7d28059acd2e
   patches:
     # These three patches together adapt epicscorelibs to use the
@@ -42,38 +44,39 @@ source:
 build:
   number: 0
   noarch: python
-  script: '{{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv'
+  script: ${{ PYTHON }} -m pip install . -vv
 
 requirements:
   host:
-    - python {{ python_min }}
-    - pip
+    - python ${{ python_min }}.*
     - setuptools
-    - epics-base
+    # - setuptools-dso >=2.9a1
+    - pip
   run:
-    - python >={{ python_min }}
+    - python >=${{ python_min }}
+    - setuptools
+    - setuptools_dso >=2.11a2
     - numpy
     - epics-base
 
-test:
-  imports:
-    - epicscorelibs
-    - epicscorelibs.ca.cadef  # loads libca from epics-base at import
-    - epicscorelibs.ca.dbr
-    - epicscorelibs.config
-  commands:
-    # EPICS libraries come from epics-base; none are bundled here
-    - python -c "import os, epicscorelibs; d = os.path.join(os.path.dirname(epicscorelibs.__file__), 'lib'); assert not any(f.endswith(('.so', '.dylib', '.dll')) for f in os.listdir(d))"
+tests:
+  - python:
+      imports:
+        - epicscorelibs
+        - epicscorelibs.ca.cadef  # loads libca from epics-base at import
+        - epicscorelibs.ca.dbr
+        - epicscorelibs.config
+      pip_check: true
+      python_version:
+        - ${{ python_min }}.*
+        - "*"
 
 about:
-  home: https://github.com/epics-base/epicscorelibs
+  summary: The EPICS Core libraries for use by python modules
   license: EPICS
   license_file: LICENSE
-  summary: EPICS core libraries packaged as a "python" module
-  description: |
-    The EPICS (Experimental Physics and Industrial Control System) core
-    libraries for use by python modules. Either dynamically with ctypes
-    or statically by compiled extension.
+  homepage: https://github.com/mdavidsaver/epicscorelibs
+  repository: https://github.com/mdavidsaver/epicscorelibs
 
 extra:
   recipe-maintainers:
