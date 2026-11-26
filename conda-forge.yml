@@ -1,8 +1,9 @@
-build_platform:
-  osx_arm64: osx_64
-  linux_aarch64: linux_64
+bot:
+  inspection: update-grayskull
 provider:
   win: azure
+  linux_aarch64: default
+  osx_arm64: default
 conda_forge_output_validation: true
 test: native_and_emulated
 github:
@@ -10,3 +11,5 @@ github:
   tooling_branch_name: main
 conda_build:
   pkg_format: '2'
+conda_build_tool: rattler-build
+conda_install_tool: pixi
